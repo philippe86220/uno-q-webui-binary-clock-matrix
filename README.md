@@ -72,8 +72,11 @@ This keeps the system simple, readable, and easy to extend.
 ---
 
 ## 📁 Project Structure
+
 ```
 /
+├── docs
+│   └── screenshot.jpg  
 ├── assets/
 │   └── index.html      → Interface 13×8 en JavaScript
 │
@@ -90,7 +93,12 @@ This keeps the system simple, readable, and easy to extend.
 │
 └── app.yaml
 ```
+---
 
+## Preview
+![Binary Clock Screenshot](docs/screenshot.png)
+
+---
 
 **Important:**  
 The `assets` folder must be lowercase and located at the project root.
