@@ -1,11 +1,22 @@
 # UNO Q Binary Clock (WebUI + LED Matrix)
 
-A simple and educational project for the Arduino UNO Q platform demonstrating:
+A minimal end-to-end UNO Q example showing Linux ↔ Bridge ↔ STM32 ↔ WebUI integration.
+A simple and educational project for the Arduino UNO Q platform demonstrating :
 
 - Linux system time as the single time source
 - STM32 LED matrix display via Bridge RPC
 - A WebUI binary clock rendered in HTML (BCD format)
 - Clean separation between Linux and MCU responsibilities
+
+## System Diagram
+
+```
+Linux (Python)
+   │
+   ├── Bridge RPC ──► STM32 LED Matrix
+   │
+   └── REST API ──► WebUI Binary Clock
+```
 
 This project is designed for beginners learning the UNO Q architecture.
 
@@ -46,6 +57,17 @@ Linux (Python) -> Bridge -> STM32 -> LED Matrix
 - LED-style glowing WebUI interface
 - Simple REST API control
 - Very low complexity (ideal for learning)
+
+---
+
+## Design Choices
+
+Separate Bridge commands are used:
+
+- updateTime() for periodic clock updates
+- clearMatrix() for one-shot actions
+
+This keeps the system simple, readable, and easy to extend.
 
 ---
 
