@@ -50,7 +50,7 @@ Linux (Python) -> Bridge -> STM32 -> LED Matrix
 ---
 
 ## 📁 Project Structure
-
+```
 /
 ├── assets/
 │   └── index.html      → Interface 13×8 en JavaScript
@@ -67,7 +67,7 @@ Linux (Python) -> Bridge -> STM32 -> LED Matrix
 ├── README.md
 │
 └── app.yaml
-
+```
 
 
 **Important:**  
