@@ -77,6 +77,7 @@ This keeps the system simple, readable, and easy to extend.
 /
 ├── docs
 │   └── screenshot.jpg  
+│
 ├── assets/
 │   └── index.html      → Interface 13×8 en JavaScript
 │
