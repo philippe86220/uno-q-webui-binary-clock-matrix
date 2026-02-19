@@ -1,1 +1,7 @@
+name: Copy of UNO_Q_HORLOGE
+description: ""
+ports: []
+bricks:
+- arduino:web_ui: {}
+icon: 😀
 
