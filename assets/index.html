@@ -1,1 +1,185 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>UNO Q Binary Clock</title>
+
+<style>
+:root{
+    --scale: 1.5; /* 1.2 = un peu plus grand, 1.5 = bien, 1.8 = tres grand */
+}
+
+body {
+    font-family: system-ui, sans-serif;
+    background: #0f172a;
+    color: #e5e7eb;
+    padding: calc(30px * var(--scale));
+}
+
+h2 {
+    margin-bottom: calc(10px * var(--scale));
+    font-size: calc(24px * var(--scale));
+}
+
+.controls {
+    margin-bottom: calc(20px * var(--scale));
+}
+
+button {
+    padding: calc(10px * var(--scale)) calc(18px * var(--scale));
+    margin-right: calc(10px * var(--scale));
+    border: none;
+    border-radius: calc(8px * var(--scale));
+    background: #1e293b;
+    color: white;
+    cursor: pointer;
+    font-size: calc(15px * var(--scale));
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #334155;
+}
+
+#timeText {
+    font-size: calc(34px * var(--scale));
+    letter-spacing: calc(2px * var(--scale));
+    margin: calc(20px * var(--scale)) 0 calc(30px * var(--scale)) 0;
+    color: #22c55e;
+    font-weight: bold;
+}
+
+.row {
+    display: flex;
+    gap: calc(24px * var(--scale));
+    align-items: flex-start;
+}
+
+.digit {
+    display: grid;
+    grid-template-rows: repeat(4, calc(28px * var(--scale)));
+    gap: calc(10px * var(--scale));
+}
+
+.led {
+    width: calc(28px * var(--scale));
+    height: calc(28px * var(--scale));
+    border-radius: calc(6px * var(--scale));
+    background: #020617;
+    border: calc(2px * var(--scale)) solid #1e293b;
+    transition: 0.2s;
+}
+
+.led.on {
+    background: #22c55e;
+    box-shadow:
+        0 0 calc(8px * var(--scale)) #22c55e,
+        0 0 calc(18px * var(--scale)) #22c55e;
+}
+
+.sep {
+    width: calc(12px * var(--scale));
+}
+
+.footer {
+    margin-top: calc(40px * var(--scale));
+    color: #64748b;
+    font-size: calc(14px * var(--scale));
+}
+</style>
+
+</head>
+
+<body>
+
+<h2>Binary Clock (BCD)</h2>
+
+<div class="controls">
+    <button id="startBtn">Start Matrix</button>
+    <button id="stopBtn">Stop Matrix</button>
+</div>
+
+<div id="timeText">--:--:--</div>
+
+<div class="row" id="clock"></div>
+
+<div class="footer">
+UNO Q · Linux time source · WebUI Binary Clock
+</div>
+
+<script>
+function makeDigit() {
+    const d = document.createElement("div");
+    d.className = "digit";
+    for (let i = 0; i < 4; i++) {
+        const led = document.createElement("div");
+        led.className = "led";
+        d.appendChild(led);
+    }
+    return d;
+}
+
+function setDigitBCD(digitEl, value) {
+    const leds = digitEl.querySelectorAll(".led");
+    for (let i = 0; i < 4; i++) {
+        const bit = 1 << (3 - i);
+        leds[i].className = "led" + ((value & bit) ? " on" : "");
+    }
+}
+
+const clockEl = document.getElementById("clock");
+const digits = [];
+
+for (let i = 0; i < 6; i++) {
+    const d = makeDigit();
+    digits.push(d);
+    clockEl.appendChild(d);
+
+    if (i === 1 || i === 3) {
+        const sep = document.createElement("div");
+        sep.className = "sep";
+        clockEl.appendChild(sep);
+    }
+}
+
+async function getTime() {
+    const r = await fetch("/api/time");
+    return await r.json();
+}
+
+async function tick() {
+    try {
+        const t = await getTime();
+        const h = t.h, m = t.m, s = t.s;
+
+        document.getElementById("timeText").textContent =
+            String(h).padStart(2,"0") + ":" +
+            String(m).padStart(2,"0") + ":" +
+            String(s).padStart(2,"0");
+
+        const vals = [
+            Math.floor(h/10), h%10,
+            Math.floor(m/10), m%10,
+            Math.floor(s/10), s%10
+        ];
+
+        for (let i = 0; i < 6; i++) setDigitBCD(digits[i], vals[i]);
+    } catch {
+        document.getElementById("timeText").textContent = "API error";
+    }
+}
+
+async function post(path) {
+    await fetch(path, { method: "POST" });
+}
+
+document.getElementById("startBtn").onclick = () => post("/api/start");
+document.getElementById("stopBtn").onclick  = () => post("/api/stop");
+
+tick();
+setInterval(tick, 1000);
+</script>
+
+</body>
+</html>
 
