@@ -97,7 +97,7 @@ This keeps the system simple, readable, and easy to extend.
 ---
 
 ## Preview
-![Binary Clock Screenshot](docs/screenshot.png)
+![Binary Clock Screenshot](docs/screenshot.jpg)
 
 ---
 
