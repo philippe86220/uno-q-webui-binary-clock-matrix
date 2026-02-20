@@ -79,13 +79,13 @@ This keeps the system simple, readable, and easy to extend.
 │   └── screenshot.jpg  
 │
 ├── assets/
-│   └── index.html      → Interface 13×8 en JavaScript
+│   └── index.html      → 13×8 Interface in JavaScript
 │
 ├── python/
 │   └── main.py         → WebUI API + Bridge RPC
 │
 ├── sketch/
-│   └── sketch.ino      → Réception des frames + matrixWrite()
+│   └── sketch.ino      → Receiving frames + matrixWrite()
 │   └── sketch.yaml
 │ 
 ├── LICENSE
@@ -182,11 +182,8 @@ http://UNOQ_IP:7000/
 
 --- 
 
-License
-
-```
+## License
 MIT License.
-```
 
 ---
 
