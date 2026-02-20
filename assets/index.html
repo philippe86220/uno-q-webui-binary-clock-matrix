@@ -5,7 +5,7 @@
 <title>UNO Q Binary Clock</title>
 
 <style>
-:root{ --scale: 1.5; }
+:root{ --scale: 1.2; }
 
 body {
   font-family: system-ui, sans-serif;
@@ -378,6 +378,14 @@ UNO Q · Linux time source · WebUI Binary Clock
 
   // Start loops no matter what
   refreshTimezoneUI();
+  function updateScale() {
+    // target width where UI looks perfect
+    const target = 1100;
+    const s = Math.min(1.5, Math.max(0.8, window.innerWidth / target));
+    document.documentElement.style.setProperty("--scale", String(s));
+}
+window.addEventListener("resize", updateScale);
+updateScale();
   tick();
   setInterval(tick, 1000);
 
