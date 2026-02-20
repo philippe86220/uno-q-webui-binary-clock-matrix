@@ -1,16 +1,16 @@
 #include <Arduino.h>
 #include <Arduino_RouterBridge.h>
 
-// C API Matrix pour la UNO-Q  
+// C API Matrix for the UNO-Q  
 extern "C" void matrixWrite(const uint32_t *buf);
 extern "C" void matrixBegin();
 
-// Matrix geométrie
+// Matrix geometry
 const int MATRIX_WIDTH  = 13;
 const int MATRIX_HEIGHT = 8;
 
-// Police 3x5 pour les chiffres 0 à 9
-// Chaque ligne est composée de 3 bits (b2 b1 b0), 1 = LED allumée, 0 = LED éteinte.
+// 3x5 font for the numbers 0 to 9
+// Each line consists of 3 bits (b2 b1 b0), 1 = LED on, 0 = LED off.
 const uint8_t DIGITS[10][5] = {
     // 0
     { 0b111, 0b101, 0b101, 0b101, 0b111 }, 
@@ -34,7 +34,7 @@ const uint8_t DIGITS[10][5] = {
     { 0b111, 0b101, 0b111, 0b001, 0b111 }
 };
 
-// signature des fonctions
+// signing of functions
 void updateTime(int32_t hour, int32_t minute, int32_t second);
 void buildClockBitmap(int hour, int minute, bool showColon, uint32_t frame[4]);
 void drawDigit(int digit, int xOffset, uint32_t frame[4]);
@@ -61,7 +61,7 @@ void clearMatrix() {
 }
 
 
-// RPC fonction appellée depuis Python
+// RPC function called from Python
 void updateTime(int32_t hour, int32_t minute, int32_t second) {
   if (hour < 0 || hour > 23 || minute < 0 || minute > 59 || second < 0 || second > 59) {
     return;
@@ -78,7 +78,7 @@ void updateTime(int32_t hour, int32_t minute, int32_t second) {
 
 void buildClockBitmap(int hour, int minute, bool showColon, uint32_t frame[4]) {
 
-    // Réinitialiser tous les bits de sortie
+    // Reset all output bits
     frame[0] = frame[1] = frame[2] = frame[3] = 0;
 
     int hTens  = hour   / 10;
@@ -86,11 +86,11 @@ void buildClockBitmap(int hour, int minute, bool showColon, uint32_t frame[4]) {
     int mTens  = minute / 10;
     int mUnits = minute % 10;
 
-    // Heures
+    // Hours
    if (hour >= 10) drawDigit(hTens, 0, frame);
    drawDigit(hUnits, 3, frame);
 
-    // Deux-points : clignotant
+    // Two points: flashing
     if (showColon) {
         setPixelBit(frame, 6, 2);
         setPixelBit(frame, 6, 4);
