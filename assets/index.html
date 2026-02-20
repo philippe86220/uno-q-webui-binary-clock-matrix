@@ -6,7 +6,7 @@
 
 <style>
 :root{
-    --scale: 1.5; /* 1.2 = un peu plus grand, 1.5 = bien, 1.8 = tres grand */
+    --scale: 1.5;
 }
 
 body {
@@ -47,6 +47,27 @@ button:hover {
     margin: calc(20px * var(--scale)) 0 calc(30px * var(--scale)) 0;
     color: #22c55e;
     font-weight: bold;
+}
+
+/* NEW WRAPPER */
+.clockWrap{
+    display: flex;
+    align-items: flex-start;
+    gap: calc(16px * var(--scale));
+}
+
+/* WEIGHTS COLUMN */
+.weights{
+    display: grid;
+    grid-template-rows: repeat(4, calc(28px * var(--scale)));
+    gap: calc(10px * var(--scale));
+    margin-top: calc(2px * var(--scale));
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: calc(14px * var(--scale));
+    line-height: calc(28px * var(--scale));
+    text-align: right;
+    width: calc(20px * var(--scale));
 }
 
 .row {
@@ -101,7 +122,19 @@ button:hover {
 
 <div id="timeText">--:--:--</div>
 
-<div class="row" id="clock"></div>
+<!-- NEW WRAPPER WITH WEIGHTS -->
+<div class="clockWrap">
+
+    <div class="weights">
+        <div>8</div>
+        <div>4</div>
+        <div>2</div>
+        <div>1</div>
+    </div>
+
+    <div class="row" id="clock"></div>
+
+</div>
 
 <div class="footer">
 UNO Q · Linux time source · WebUI Binary Clock
@@ -182,4 +215,3 @@ setInterval(tick, 1000);
 
 </body>
 </html>
-
