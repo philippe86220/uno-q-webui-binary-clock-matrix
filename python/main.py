@@ -19,6 +19,9 @@ _state = {
     "h": 0,
     "m": 0,
     "s": 0,
+    "y": 0,
+    "mo": 0,
+    "d": 0,
     "running": True,
     "timezone": "Europe/Paris",
 }
@@ -79,7 +82,10 @@ def _tick_loop():
     while True:
         tz = _get_tz()
         now = datetime.datetime.now(tz=tz)
-
+        
+        y = now.year
+        mo = now.month
+        d = now.day
         h = now.hour
         m = now.minute
         s = now.second
@@ -88,6 +94,9 @@ def _tick_loop():
             _state["h"] = h
             _state["m"] = m
             _state["s"] = s
+            _state["y"] = y
+            _state["mo"] = mo
+            _state["d"] = d
             running = _state["running"]
 
         if running:
@@ -115,6 +124,9 @@ def api_time(_req=None):
             "h": _state["h"],
             "m": _state["m"],
             "s": _state["s"],
+            "y": _state["y"],
+            "mo": _state["mo"],
+            "d": _state["d"],
             "running": _state["running"],
             "timezone": _state["timezone"],
         }
