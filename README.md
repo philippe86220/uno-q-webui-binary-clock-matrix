@@ -257,6 +257,8 @@ Bridge.call("updateTime", hour, minute, second)
 5. In parallel, the WebUI periodically requests the current state from the Python application using the
    **/api/time** endpoint and updates the binary clock display.
 
+**The Python application acts as the central coordinator between the WebUI and the microcontroller**.
+
 ---
 
 ## 🌐 Web API Endpoints
