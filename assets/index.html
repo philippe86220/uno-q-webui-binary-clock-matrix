@@ -36,11 +36,23 @@ button {
 button:hover { background: #334155; }
 
 #timeText {
+  margin: calc(20px * var(--scale)) 0 calc(16px * var(--scale)) 0;
+  font-weight: bold;
+}
+
+#timeLine{
   font-size: calc(34px * var(--scale));
   letter-spacing: calc(2px * var(--scale));
-  margin: calc(20px * var(--scale)) 0 calc(16px * var(--scale)) 0;
   color: #22c55e;
-  font-weight: bold;
+  line-height: 1.1;
+}
+
+#dateLine{
+  margin-top: calc(6px * var(--scale));
+  font-size: calc(18px * var(--scale));
+  letter-spacing: calc(1px * var(--scale));
+  color: #94a3b8; /* date en gris doux */
+  font-weight: 600;
 }
 
 .clockWrap{
@@ -176,7 +188,10 @@ button:hover { background: #334155; }
   <button id="stopBtn">Sleep Matrix</button>
 </div>
 
-<div id="timeText">--:--:-- -- -- ----</div>
+<div id="timeText">
+  <div id="timeLine">--:--:--</div>
+  <div id="dateLine">-- -- ----</div>
+</div>
 
 <div class="tzPanel">
   <div class="tzTitle">
@@ -214,17 +229,96 @@ UNO Q · Linux time source · WebUI Binary Clock
 
   function qs(id){ return document.getElementById(id); }
 
-  // 12h/24h toggle (WebUI only)
   let use12h = (localStorage.getItem("clock12h") === "1");
+
   function updateFmtBtn(){
     qs("fmtBtn").textContent = use12h ? "12h" : "24h";
   }
+
+  function setTzMsg(text, ok) {
+    const el = qs("tzMsg");
+    el.textContent = text || "";
+    el.style.color = ok ? "#86efac" : "#fca5a5";
+  }
+
+  function setBadge(el, text, ok) {
+    el.textContent = text;
+    el.style.background = ok ? "#064e3b" : "#7f1d1d";
+  }
+
+  async function apiGetHourMode(){
+    const r = await fetch("/api/hour_mode", { method:"GET" });
+    if(!r.ok) throw new Error("GET /api/hour_mode failed: " + r.status);
+    return await r.json();
+  }
+
+  async function apiSetHourMode(mode){
+    const url = "/api/hour_mode?mode=" + encodeURIComponent(String(mode));
+    const r = await fetch(url, { method:"POST" });
+    if(!r.ok) throw new Error("POST /api/hour_mode failed: " + r.status);
+    return await r.json();
+  }
+
+  async function apiGetTime(){
+    const r = await fetch("/api/time", { method:"GET" });
+    if(!r.ok) throw new Error("GET /api/time failed: " + r.status);
+    return await r.json();
+  }
+
+  async function apiPost(path){
+    const r = await fetch(path, { method:"POST" });
+    if(!r.ok) throw new Error("POST " + path + " failed: " + r.status);
+    return await r.text();
+  }
+
+  async function apiGetTimezone(){
+    const r = await fetch("/api/timezone", { method:"GET" });
+    if(!r.ok) throw new Error("GET /api/timezone failed: " + r.status);
+    return await r.json();
+  }
+
+  async function apiSetTimezone(tz) {
+    const url = "/api/timezone?timezone=" + encodeURIComponent(tz);
+    const r = await fetch(url, { method: "POST" });
+    if (!r.ok) throw new Error("POST /api/timezone failed: " + r.status);
+    return await r.json();
+  }
+
   updateFmtBtn();
-  qs("fmtBtn").onclick = () => {
-    use12h = !use12h;
-    localStorage.setItem("clock12h", use12h ? "1" : "0");
-    updateFmtBtn();
+
+  qs("fmtBtn").onclick = async () => {
+    try{
+      use12h = !use12h;
+      const wanted = use12h ? 12 : 24;
+
+      const res = await apiSetHourMode(wanted);
+      if(res && res.ok){
+        localStorage.setItem("clock12h", use12h ? "1" : "0");
+        updateFmtBtn();
+        setTzMsg("Hour mode saved: " + wanted + "h", true);
+      }else{
+        use12h = !use12h;
+        updateFmtBtn();
+        setTzMsg((res && res.error) ? res.error : "Server refused hour mode", false);
+      }
+    }catch(e){
+      use12h = !use12h;
+      updateFmtBtn();
+      setTzMsg(String(e), false);
+    }
   };
+
+  (async function syncHourMode(){
+    try{
+      const data = await apiGetHourMode();
+      const hm = (data && data.hour_mode) ? Number(data.hour_mode) : 24;
+      use12h = (hm === 12);
+      localStorage.setItem("clock12h", use12h ? "1" : "0");
+      updateFmtBtn();
+    }catch(e){
+      // keep localStorage
+    }
+  })();
 
   function makeDigit() {
     const d = document.createElement("div");
@@ -261,42 +355,6 @@ UNO Q · Linux time source · WebUI Binary Clock
     }
   }
 
-  function setTzMsg(text, ok) {
-    const el = qs("tzMsg");
-    el.textContent = text || "";
-    el.style.color = ok ? "#86efac" : "#fca5a5";
-  }
-
-  function setBadge(el, text, ok) {
-    el.textContent = text;
-    el.style.background = ok ? "#064e3b" : "#7f1d1d";
-  }
-
-  async function apiGetTime(){
-    const r = await fetch("/api/time", { method:"GET" });
-    if(!r.ok) throw new Error("GET /api/time failed: " + r.status);
-    return await r.json();
-  }
-
-  async function apiPost(path){
-    const r = await fetch(path, { method:"POST" });
-    if(!r.ok) throw new Error("POST " + path + " failed: " + r.status);
-    return await r.text();
-  }
-
-  async function apiGetTimezone(){
-    const r = await fetch("/api/timezone", { method:"GET" });
-    if(!r.ok) throw new Error("GET /api/timezone failed: " + r.status);
-    return await r.json();
-  }
-
-  async function apiSetTimezone(tz) {
-    const url = "/api/timezone?timezone=" + encodeURIComponent(tz);
-    const r = await fetch(url, { method: "POST" });
-    if (!r.ok) throw new Error("POST /api/timezone failed: " + r.status);
-    return await r.json();
-  }
-
   function formatDateInline(y, mo, d){
     const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
     if(!y || !mo || !d) return "-- -- ----";
@@ -304,32 +362,47 @@ UNO Q · Linux time source · WebUI Binary Clock
     return String(d).padStart(2,"0") + " " + name + " " + String(y);
   }
 
-  function formatTimeInline(h, m, s){
-    if(!use12h){
-      return String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
-    }
-
-    let hh = h;
-    const suffix = (hh >= 12) ? " PM" : " AM";
-    hh = hh % 12;
-    if (hh === 0) hh = 12;
-
-    return String(hh).padStart(2,"0") + ":" + String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0") + suffix;
+  function formatTimeInline(hDisp, m, s, h24){
+  // mode 24h
+  if(!use12h){
+    return String(hDisp).padStart(2,"0") + ":" +
+           String(m).padStart(2,"0") + ":" +
+           String(s).padStart(2,"0");
   }
+
+  // mode 12h → hDisp est déjà 1..12
+  const suffix = (h24 >= 12) ? " PM" : " AM";
+
+  return String(hDisp).padStart(2,"0") + ":" +
+         String(m).padStart(2,"0") + ":" +
+         String(s).padStart(2,"0") +
+         suffix;
+}
 
   async function tick(){
     try{
       const t = await apiGetTime();
-      const h = t.h, m = t.m, s = t.s;
+      const h24 = t.h, m = t.m, s = t.s;
 
-      const timePart = formatTimeInline(h, m, s);
+      const hourMode = Number(t.hour_mode || 24);
+
+      use12h = (hourMode === 12);
+      localStorage.setItem("clock12h", use12h ? "1" : "0");
+      updateFmtBtn();
+
+      let hDisp = h24;
+      if (hourMode === 12) {
+        hDisp = h24 % 12;
+        if (hDisp === 0) hDisp = 12;
+      }
+
+      const timePart = formatTimeInline(hDisp, m, s, h24);
       const datePart = formatDateInline(t.y, t.mo, t.d);
+      qs("timeLine").textContent = timePart;
+      qs("dateLine").textContent = datePart;
 
-      qs("timeText").textContent = timePart + " " + datePart;
-
-      // BCD stays 24h (matrix and BCD reflect raw h/m/s)
       const vals = [
-        Math.floor(h/10), h%10,
+        Math.floor(hDisp/10), hDisp%10,
         Math.floor(m/10), m%10,
         Math.floor(s/10), s%10
       ];
@@ -338,7 +411,8 @@ UNO Q · Linux time source · WebUI Binary Clock
       setBadge(qs("runBadge"), t.running ? "matrix: on" : "matrix: sleep", true);
 
     }catch(e){
-      qs("timeText").textContent = "API error";
+      qs("timeLine").textContent = "API error";
+      qs("dateLine").textContent = "";
     }
   }
 
