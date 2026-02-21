@@ -42,7 +42,12 @@ The project clearly shows how a single application can integrate:
 ## System Diagram
 
 ```
-WebUI (Browser)  ⇄  REST API (HTTP/JSON)  ⇄  Linux (Python)  →  Bridge RPC  →  STM32  →  LED Matrix
+WebUI (Browser)
+        ⇄ REST API ⇄
+Python Application (Linux side)
+        → Bridge RPC →
+STM32 Firmware
+        → LED Matrix
 ```
 ---
 
