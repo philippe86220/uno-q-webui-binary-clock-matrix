@@ -1,12 +1,43 @@
 # UNO Q Binary Clock (WebUI + LED Matrix)
 
-A minimal end-to-end UNO Q example showing Linux ↔ Bridge ↔ STM32 ↔ WebUI integration.
-A simple and educational project for the Arduino UNO Q platform demonstrating :
+## Introduction
 
-- Linux system time as the single time source
-- STM32 LED matrix display via Bridge RPC
-- A WebUI binary clock rendered in HTML (BCD format)
-- Clean separation between Linux and MCU responsibilities
+This project implements a complete binary clock application running on the Arduino UNO Q platform.  
+It combines a web-based user interface, a Python service running on the Linux side of the board, and a   
+microcontroller firmware controlling the LED matrix display.
+The application allows users to:
+
+- View the current time and date in real time
+- Display the time using Binary Coded Decimal (BCD) representation in the WebUI
+- Show the time on the built-in LED matrix using digital digits
+- Select and apply different timezones
+- Switch between 12-hour and 24-hour display modes
+- Start or stop the LED matrix display remotely
+
+The system uses the Linux operating system as the primary time source and control layer, while the STM32  
+microcontroller acts exclusively as a hardware display controller. 
+
+---
+
+### Purpose of the Project
+
+This application is designed as a pedagogical example demonstrating how different layers of an embedded  
+system can interact in a modern hybrid architecture.
+
+It illustrates :
+
+- Interaction between a web interface and an embedded Linux system
+- Use of REST APIs for real-time data exchange
+- Communication between a Linux application and a microcontroller using RPC mechanisms
+- Separation of responsibilities between system logic and hardware control
+
+The project clearly shows how a single application can integrate:
+
+- User interface management
+- System-level processing
+- Microcontroller-driven hardware rendering
+
+---
 
 ## System Diagram
 
@@ -17,57 +48,169 @@ Linux (Python)
    │
    └── REST API ──► WebUI Binary Clock
 ```
+---
 
-This project is designed for beginners learning the UNO Q architecture.
+### General System Behavior
+
+In normal operation :
+
+1. The WebUI periodically requests the current time from the Python application.
+2. The Python application retrieves the system time and maintains the application state.
+3. The Python application sends display updates to the STM32 microcontroller.
+4. The STM32 renders the time on the LED matrix.
 
 ---
 
-## Architecture Overview
+## Data Exchanges Between System Components
 
-The project shows the dual-core nature of UNO Q:
+This application is built around a clear separation between three main components :
 
-Linux (Python) -> Bridge -> STM32 -> LED Matrix  
-               -> WebUI (HTML Binary Clock)
+- The WebUI running in the browser
+- The Python application running on the Linux side of the UNO Q
+- The STM32 microcontroller controlling the LED matrix
 
-### Linux side (Python)
-
-- Retrieves system time using `datetime`
-- Sends HH:MM:SS to STM32 every second
-- Serves a WebUI using the WebUI brick
-- Provides REST API endpoints
-
-### STM32 side
-
-- Receives time via Bridge RPC
-- Displays digital clock on LED matrix
-
-### WebUI side
-
-- Displays a binary clock in BCD format
-- Uses the same Linux system time
-- Allows starting/stopping matrix updates
+The Python application acts as the central communication hub.
 
 ---
 
-## ✨ Features
+### 1. Communication Between WebUI and Linux (Python)
 
-- Real-time clock synchronized with Linux system time
-- Automatic summer/winter time handling (Europe/Paris)
-- Binary clock display (BCD format)
-- LED-style glowing WebUI interface
-- Simple REST API control
-- Very low complexity (ideal for learning)
+The WebUI and the Python application communicate using a REST API over HTTP.  
+
+This communication is bidirectional.  
+
+**Requests Sent From WebUI to Python**  
+The browser sends commands and queries such as :
+
+- Requesting the current time and date
+- Changing the timezone
+- Switching between 12h and 24h modes
+- Starting or stopping the LED matrix display  
+
+Examples of API calls:
+
+```
+GET  /api/time
+POST /api/timezone
+POST /api/hour_mode
+POST /api/start
+POST /api/stop
+```
+
+These requests are initiated by user actions or periodic polling.
 
 ---
 
-## Design Choices
+**Responses Sent From Python to WebUI**  
 
-Separate Bridge commands are used:
+The Python application responds with JSON data containing :
 
-- updateTime() for periodic clock updates
-- clearMatrix() for one-shot actions
+- Current time values (hour, minute, second)
+- Current date values
+- Timezone name
+- Running/sleep state of the matrix
+- Hour display mode (12h or 24h)
 
-This keeps the system simple, readable, and easy to extend.
+This allows the WebUI to update the display every second.
+
+---
+
+### 2. Communication Between Linux (Python) and STM32
+
+Communication between the Linux side and the STM32 is performed using the **RouterBridge RPC   
+mechanism.**
+
+This communication is one-directional in this application.
+
+---
+
+**Commands Sent From Python to STM32**
+
+The Python application sends only two types of commands :   
+
+**Time Update Command**
+Sent once per second when the matrix is running:
+
+```
+Bridge.call("updateTime", hour, minute, second)
+```
+
+This instructs the STM32 to :
+
+---
+
+**No Data Sent From STM32 to Python**
+
+In this application, the STM32 does not send any information back to the Linux side.
+
+It acts purely as a display controller.
+
+---
+
+### 3. Role of the Linux Side as the Communication Hub
+
+All data exchanges pass through the Python application.  
+
+It performs three key roles:  
+
+- It receives user commands from the WebUI
+- It computes and maintains the current time state
+- It sends display instructions to the STM32
+
+
+The STM32 never communicates directly with the WebUI.  
+
+---
+
+### 4. Summary of Data Flow Directions
+
+**WebUI ↔ Linux (Python)**
+
+Bidirectional communication :
+
+- WebUI sends HTTP requests
+- Python sends JSON responses
+
+---
+
+**Linux (Python) → STM32**
+
+Unidirectional communication :  
+- Python sends RPC commands
+- STM32 executes display operations
+
+---
+
+**STM32 → Linux**
+
+No data flow in this application.  
+
+---
+
+### 5. Key Architectural Principle
+
+The system follows a strict hierarchy :
+
+- The WebUI interacts only with the Linux side.
+- The STM32 interacts only with the Linux side.
+
+👉 The Python application is therefore the single point of coordination between user interface and hardware.
+
+
+
+---
+
+✨ Features
+- Real-time clock synchronized with the Linux system time
+- Timezone selection using standard IANA names (e.g., Europe/Paris)
+- Automatic daylight saving time handling via the Linux timezone system
+- Binary clock display in BCD format within the WebUI
+- Digital time rendering on the LED matrix
+- 12-hour / 24-hour display mode selection
+- Remote start and stop control of the LED matrix
+- Simple REST API communication between WebUI and Python
+- Clear separation between system logic (Linux) and hardware display (STM32)
+- Low complexity design, suitable for educational purposes
 
 ---
 
@@ -79,13 +222,13 @@ This keeps the system simple, readable, and easy to extend.
 │   └── screenshot.jpg  
 │
 ├── assets/
-│   └── index.html      → 13×8 Interface in JavaScript
+│   └── index.html      
 │
 ├── python/
-│   └── main.py         → WebUI API + Bridge RPC
+│   └── main.py        
 │
 ├── sketch/
-│   └── sketch.ino      → Receiving frames + matrixWrite()
+│   └── sketch.ino     
 │   └── sketch.yaml
 │ 
 ├── LICENSE
@@ -101,55 +244,116 @@ This keeps the system simple, readable, and easy to extend.
 
 ---
 
-**Important:**  
-The `assets` folder must be lowercase and located at the project root.
-
----
-
 ## 🚀 How It Works
 
 ### Time Flow
 
-1. Linux reads current time every second
-2. Python sends time via Bridge:
+The application operates in a simple cyclic process that repeats every second :
+1. The Linux system retrieves the current time using its system clock.
+2. The Python application updates its internal state and applies timezone conversion.
+3. The Python application sends the current time to the STM32 using a Bridge RPC call :
+  
+```
+Bridge.call("updateTime", hour, minute, second)
+```
 
-Bridge.call("updateTime", h, m, s)
-
-
-3. STM32 updates LED matrix display
-4. WebUI fetches `/api/time` and updates binary clock
+4. The STM32 firmware converts the digits into bitmap patterns and updates the LED matrix display.
+5.In parallel, the WebUI periodically requests the current state from the Python application using the
+   **/api/time** endpoint and updates the binary clock display.
 
 ---
 
 ## 🌐 Web API Endpoints
 
-### Get current time
+The Python application exposes a simple REST API used by the WebUI.  
 
+---
+
+Get Current Time
+```
 GET /api/time
+```
 
-
-Response:
+Example response :
 
 ```
 {
   "h": 14,
   "m": 32,
   "s": 10,
-  "running": true
+  "y": 2026,
+  "mo": 2,
+  "d": 21,
+  "running": true,
+  "timezone": "Europe/Paris",
+  "hour_mode": 24
 }
+
 ```
+This endpoint provides all information required by the WebUI to update the clock display.
+
+---
 
 **Start LED matrix updates**
 
 ```
 POST /api/start
 ```
+
+Sets the system to running mode and resumes display updates.  
+
+---
+
 **Stop LED matrix updates**
 
 ```
 POST /api/stop
 ```
+
+Puts the matrix into sleep mode and clears the display.  
+
 ---
+
+Timezone Management  
+
+Get current timezone  
+
+```
+GET /api/timezone
+```
+
+---
+
+Set timezone  
+
+```
+POST /api/timezone?timezone=Europe/Paris
+```
+
+Updates the active timezone and saves it in the configuration file.  
+
+---
+
+Hour Display Mode  
+Get hour mode  
+
+```
+GET /api/hour_mode
+```
+
+---
+
+Set hour mode  
+```
+POST /api/hour_mode?mode=12
+```
+
+Allows switching between 12-hour and 24-hour display formats.
+
+---
+
+
+
 
 ## Access WebUI
 
@@ -162,23 +366,7 @@ or
 http://UNOQ_IP:7000/
 ```
 
----
 
-## Educational Goals
-
-- Learn UNO Q Linux/STM32 architecture
-- Understand Bridge RPC communication
-- Build simple WebUI interfaces
-- Work with system time and threading
-
----
-
-## Requirements
-
-- Arduino UNO Q board
-- Arduino App Lab environment
-- LED Matrix enabled on STM32 side
-- Network access to the UNO Q device
 
 --- 
 
