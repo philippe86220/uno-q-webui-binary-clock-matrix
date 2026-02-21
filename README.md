@@ -254,7 +254,7 @@ Bridge.call("updateTime", hour, minute, second)
 ```
 
 4. The STM32 firmware converts the digits into bitmap patterns and updates the LED matrix display.
-5.In parallel, the WebUI periodically requests the current state from the Python application using the
+5. In parallel, the WebUI periodically requests the current state from the Python application using the
    **/api/time** endpoint and updates the binary clock display.
 
 ---
@@ -269,8 +269,10 @@ Get Current Time
 ```
 GET /api/time
 ```
-
-Example response :
+Called by: the WebUI (automatically, every second)  
+Purpose:  
+To retrieve the current time, date, and application state so the browser can update the binary clock display.  
+Example response :  
 
 ```
 {
@@ -286,7 +288,7 @@ Example response :
 }
 
 ```
-This endpoint provides all information required by the WebUI to update the clock display.
+
 
 ---
 
@@ -295,8 +297,10 @@ This endpoint provides all information required by the WebUI to update the clock
 ```
 POST /api/start
 ```
+Called by: the WebUI when the user clicks “Resume Matrix”   
+Purpose:    
+Sets the application to running mode so that the Python service resumes sending time updates to the STM32.    
 
-Sets the system to running mode and resumes display updates.  
 
 ---
 
@@ -306,7 +310,9 @@ Sets the system to running mode and resumes display updates.
 POST /api/stop
 ```
 
-Puts the matrix into sleep mode and clears the display.  
+Called by: the WebUI when the user clicks “Sleep Matrix”  
+Purpose:  
+Stops display updates and instructs the STM32 to clear the LED matrix.  
 
 ---
 
@@ -318,6 +324,10 @@ Get current timezone
 GET /api/timezone
 ```
 
+Called by: the WebUI during initialization and when refreshing the timezone panel.  
+Purpose:  
+Retrieves the currently active timezone configured on the Linux side.  
+
 ---
 
 Set timezone  
@@ -326,7 +336,9 @@ Set timezone
 POST /api/timezone?timezone=Europe/Paris
 ```
 
-Updates the active timezone and saves it in the configuration file.  
+Called by: the WebUI when the user selects or detects a timezone.  
+Purpose:  
+Updates the active timezone and saves it in the local configuration file.  
 
 ---
 
@@ -336,6 +348,9 @@ Get hour mode
 ```
 GET /api/hour_mode
 ```
+Called by: the WebUI at startup.  
+Purpose:  
+Determines whether the clock should display time in 12-hour or 24-hour format.  
 
 ---
 
@@ -343,8 +358,9 @@ Set hour mode
 ```
 POST /api/hour_mode?mode=12
 ```
-
-Allows switching between 12-hour and 24-hour display formats.
+Called by: the WebUI when the user toggles the hour format button.  
+Purpose:  
+Updates the display mode and stores the selection in the configuration file.  
 
 ---
 
