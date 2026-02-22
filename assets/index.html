@@ -176,6 +176,36 @@ button:hover { background: #334155; }
   color: #64748b;
   font-size: calc(14px * var(--scale));
 }
+
+.clockCol{
+  display: flex;
+  flex-direction: column;
+}
+
+.labelsRow{
+  display: flex;
+  gap: calc(24px * var(--scale));
+  margin-bottom: calc(10px * var(--scale));
+  color: #facc15;
+  font-weight: 800;
+  font-size: calc(14px * var(--scale));
+  letter-spacing: calc(1px * var(--scale));
+  text-transform: uppercase;
+}
+
+.groupLabel{
+  width: calc((28px * var(--scale)) * 2 + (24px * var(--scale)));
+  text-align: center;
+}
+
+.sepLabel{
+  width: calc(12px * var(--scale));
+}
+
+/* optional but helps alignment */
+.digit{
+  width: calc(28px * var(--scale));
+}
 </style>
 </head>
 
@@ -216,7 +246,18 @@ button:hover { background: #334155; }
   <div class="weights">
     <div>8</div><div>4</div><div>2</div><div>1</div>
   </div>
-  <div class="row" id="clock"></div>
+
+  <div class="clockCol">
+    <div class="labelsRow">
+      <div class="groupLabel">HRS</div>
+      <div class="sepLabel"></div>
+      <div class="groupLabel">MIN</div>
+      <div class="sepLabel"></div>
+      <div class="groupLabel">SEC</div>
+    </div>
+
+    <div class="row" id="clock"></div>
+  </div>
 </div>
 
 <div class="footer">
