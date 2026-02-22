@@ -147,7 +147,7 @@ The Linux application operates using a dual-thread model :
 
 Both threads share a common state protected by a synchronization lock.
 
-```
+
 
 ---
 
