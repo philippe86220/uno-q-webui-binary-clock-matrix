@@ -6,7 +6,7 @@
 
 <style>
 :root{ --scale: 1.2; }
-
+  
 body {
   font-family: system-ui, sans-serif;
   background: #0f172a;
@@ -56,9 +56,12 @@ button:hover { background: #334155; }
 }
 
 .clockWrap{
-  display: flex;
-  align-items: flex-start;
-  gap: calc(16px * var(--scale));
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: calc(16px * var(--scale));
+  row-gap: calc(10px * var(--scale));
+  align-items: start;
   margin-top: calc(18px * var(--scale));
 }
 
@@ -66,7 +69,7 @@ button:hover { background: #334155; }
   display: grid;
   grid-template-rows: repeat(4, calc(28px * var(--scale)));
   gap: calc(10px * var(--scale));
-  margin-top: calc(2px * var(--scale));
+  margin-top: 0;
   color: #94a3b8;
   font-weight: 600;
   font-size: calc(14px * var(--scale));
@@ -79,6 +82,21 @@ button:hover { background: #334155; }
   display: flex;
   gap: calc(24px * var(--scale));
   align-items: flex-start;
+}
+
+.labelsRow{
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.weights{
+  grid-column: 1;
+  grid-row: 2;
+}
+
+#clock{
+  grid-column: 2;
+  grid-row: 2;
 }
 
 .digit {
@@ -243,21 +261,19 @@ button:hover { background: #334155; }
 </div>
 
 <div class="clockWrap">
+  <div class="labelsRow">
+    <div class="groupLabel">HRS</div>
+    <div class="sepLabel"></div>
+    <div class="groupLabel">MIN</div>
+    <div class="sepLabel"></div>
+    <div class="groupLabel">SEC</div>
+  </div>
+
   <div class="weights">
     <div>8</div><div>4</div><div>2</div><div>1</div>
   </div>
 
-  <div class="clockCol">
-    <div class="labelsRow">
-      <div class="groupLabel">HRS</div>
-      <div class="sepLabel"></div>
-      <div class="groupLabel">MIN</div>
-      <div class="sepLabel"></div>
-      <div class="groupLabel">SEC</div>
-    </div>
-
-    <div class="row" id="clock"></div>
-  </div>
+  <div class="row" id="clock"></div>
 </div>
 
 <div class="footer">
