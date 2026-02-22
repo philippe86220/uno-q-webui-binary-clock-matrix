@@ -149,3 +149,193 @@ Both threads share a common state protected by a synchronization lock.
 
 ```
 
+---
+
+## Appendix A — Linux Core Code Explanation
+
+(main.py explained line by line)
+
+### Imports
+
+`import datetime`
+Provides access to date and time functions, used to retrieve the current system time.
+
+`import json`
+Used to read and write the configuration file stored in JSON format.
+
+`import os`
+Provides utilities for working with file paths and directories.
+
+`import threading`
+Allows the creation of a background thread for periodic time updates.
+
+`import time`
+Provides the sleep() function used to pause execution between updates.
+
+`from zoneinfo import ZoneInfo, available_timezones`
+Used for timezone management and validation.
+
+`from arduino.app_utils import App, Bridge, Logger`
+Imports UNO Q utilities :
+
+- `App` runs the main application loop
+- `Bridge` enables RPC communication with the STM32
+- `Logger`provides logging capabilities
+
+`from arduino.app_bricks.web_ui import WebUI`
+Provides the WebUI server and REST API functionality.
+
+---
+
+### Initialization
+
+`logger = Logger("uno-q-clock")`
+Creates a logger instance for recording system events.
+
+`print("Python ready", flush=True)`
+Displays a startup message immediately.
+
+`web = WebUI()`
+Starts the WebUI server and serves the web interface automatically.
+
+---
+
+### Shared State and Synchronization
+
+`_lock = threading.Lock()`
+Creates a lock to protect shared data accessed by multiple threads.
+
+`_state = {...}`
+Defines a dictionary storing the global application state :   
+
+- current time and date
+- running status of the matrix
+- active timezone
+- hour display mode
+
+---
+
+### Matrix Status Flag
+
+`_matrix_is_on = True`
+Tracks whether the LED matrix is currently active, preventing repeated clear commands.
+
+---
+
+### Configuration File Setup
+
+`_CONFIG_PATH = ...`
+Defines the location of the persistent configuration file.
+
+`_DEFAULT_TZ = "Europe/Paris"`
+Specifies the default timezone used when configuration is missing or invalid.
+
+---
+
+### Configuration Management Functions
+
+`_load_config()`
+Reads configuration from disk and returns timezone and hour mode values.
+
+`_save_config()`
+Writes updated configuration values back to the JSON file.
+
+---
+
+### Timezone Utility Functions
+
+`_is_valid_tz()`
+Checks whether a given timezone name is valid.
+
+`_get_tz()`
+Returns the current active timezone in a thread-safe manner.
+
+---
+
+### Hour Display Conversion
+
+`_hour_for_display()`
+Converts a 24-hour value into a 12-hour display format if needed.
+
+---
+
+### REST API Handlers
+
+`api_get_hour_mode()`
+Returns the current hour display mode.
+
+`api_set_hour_mode()`
+Updates the hour display mode and saves it to the configuration file.
+
+---
+
+### Background Time Update Loop
+
+`_tick_loop()`
+Runs continuously in a separate thread.
+
+Inside this loop :  
+
+- The current system time is retrieved every second.
+- The shared application state is updated.
+- The matrix running status is checked.
+- RPC commands are sent to the STM32:
+  - `updateTime` when running
+  - `clearMatrix` when entering sleep mode.
+  
+This loop acts as the main periodic scheduler for the application.  
+
+---
+
+### REST API Endpoints
+
+`api_time()`
+Returns the complete system state to the WebUI.
+
+`api_start()`
+Enables matrix updates.
+
+`api_stop()`
+Disables matrix updates.
+
+`api_get_timezone()`
+Returns the current timezone.
+
+`api_set_timezone()`
+Updates the timezone and saves it.
+
+---
+
+### API Registration
+
+`web.expose_api(...)`
+Associates HTTP routes with their corresponding handler functions.  
+
+This defines the communication interface between the WebUI and the Linux application.
+
+---
+
+### Application Entry Point
+
+`main()`
+
+Initializes the system :
+
+- Loads saved configuration
+- Updates shared state values
+- Starts the background thread
+- Launches the main application loop
+
+`App.run()`
+Starts the main thread responsible for serving the WebUI and handling REST requests.
+
+---
+
+### Program Execution
+
+`if __name__ == "__main__": main()`
+Ensures that the application starts only when the script is run directly.
+
+---
+
+
